@@ -13,9 +13,9 @@
 ;
 ;(fib 10)
 ;WRONG
-
+;
 ;(defn fib [n] (if (< n 2) n  (+ (fib (- n 1)) (fib (- n 2)))))
-;(println (fib 20))
+;(println (fib 5))
 ;Fibonachi num
 
 ;(defn fibl-step [i fib_n-2 fib_n-1 n]
