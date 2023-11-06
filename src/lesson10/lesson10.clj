@@ -59,5 +59,5 @@
 (max tree) ; 8
 (min tree) ; 1
 (to-list (remove tree 3)) ; (1 2 4 5 8)
-(contains? tree 2) ; true
+(println(contains? tree 2)) ; true
 

@@ -1,16 +1,13 @@
-;(def d (ref {}))
-;(dosync (ref-set d (assoc @d "new-key" "new-value")))
-;(println d)
-
 (defrecord Graph [vertices edges])
 (defn make-graph []
   (Graph. (ref {}) (ref '())))
 
-(defrecord Vertex [label lat lon neighbors])
+(defrecord Vertex [label lat lon neighbors status])
 (defrecord Edge [from to label weight])
 "------------------------------------------------------------------------------------"
 (defn make-vertex [label lat lon]
-  (Vertex. label lat lon (ref '())))
+  (Vertex. label lat lon (ref '()) (ref 0)))
+
 (defn make-edge [from to label weight]
   (Edge. from to label (ref weight)))
 
@@ -41,10 +38,22 @@
 (defn vertex-unseen? [vertex]
   (= @(:status vertex) 0))
 
-(defn dfs-add-to-queue [vertex queue]
-  (when (vertex-unseen? vertex)
-    (assoc vertex :status 1)
-    (conj queue vertex)))
+
+(defn dfs-add-to-queue [queue graph neighbors]
+  (loop [queue queue
+         neighbors neighbors]
+    (if (empty? neighbors)
+      queue
+      (let [neighbor-name (first neighbors)
+            neighbor (get @(:vertices graph) neighbor-name)]
+        (if (vertex-unseen? neighbor)
+          (do
+            (dosync
+              (ref-set (:status neighbor) 1))
+            (recur (conj queue neighbor-name)
+                   (rest neighbors)))
+          (recur queue
+                 (rest neighbors)))))))
 
 
 (defn graph-dfs [graph start]
@@ -53,21 +62,12 @@
       (let [current-label (first queue)
             current-vertex (get @(:vertices graph)current-label)]
         (dosync (ref-set (:status current-vertex) 2))
-    (println current-label)
-    (dosync (ref-set (:status current-vertex) 3))
-    (recur (dfs-add-to-queue (rest queue) graph @(:neighbors current-vertex)))))))
-
-
-
-
-
-
-
-;(defn graph-reset! [Path] (remove #(Path)))
+        (println current-label)
+        (dosync (ref-set (:status current-vertex) 3))
+        (recur (dfs-add-to-queue (rest queue) graph @(:neighbors current-vertex)))))))
 "-----------------------------------------------------------------------------------"
-
-
 (load-file "e-roads-2020-full.clj")
 ;(println g)
 ;(graph-print-info g)
-(println(graph-dfs g "Dublin"))
+;(graph-dfs g "Hirtshals")
+(println (get @(:vertices g) "Prague"))
